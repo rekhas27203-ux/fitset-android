@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f14">
+<title>FitSet</title>
+<style>
+  :root{
+    --bg:#0b0f14; --card:#151c25; --card2:#1b242f; --line:#243040;
+    --txt:#e8eef6; --mut:#8b9aab; --acc:#ff6b2c; --acc2:#2dd4bf; --ok:#34d399;
+    --urdu:'Noto Naskh Arabic','Noto Nastaliq Urdu',serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:var(--bg);color:var(--txt);
+    font-family:-apple-system,Roboto,'Segoe UI',sans-serif;
+    overflow:hidden;
+  }
+  .urdu{font-family:var(--urdu);direction:rtl;unicode-bidi:isolate}
+  #app{position:fixed;inset:0;display:flex;flex-direction:column}
+
+  /* ---------- top bar ---------- */
+  #topbar{
+    flex:0 0 auto;display:flex;align-items:center;gap:12px;
+    padding:calc(14px + env(safe-area-inset-top)) 18px 12px;
+    background:linear-gradient(180deg,#101821,#0b0f14);
+    border-bottom:1px solid var(--line);
+  }
+  #topbar h1{font-size:17px;margin:0;font-weight:700;letter-spacing:.2px;flex:1}
+  #topbar h1 small{display:block;font-size:11px;color:var(--mut);font-weight:500;margin-top:2px;letter-spacing:0}
+  .backbtn{
+    width:36px;height:36px;border-radius:12px;border:1px solid var(--line);
+    background:var(--card);color:var(--txt);font-size:18px;line-height:1;
+    display:none;align-items:center;justify-content:center;
+  }
+  .backbtn.on{display:flex}
+  .logo{
+    width:36px;height:36px;border-radius:12px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--acc),#ff9b57);
+    display:flex;align-items:center;justify-content:center;font-size:19px;
+  }
+
+  main{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 16px calc(28px + env(safe-area-inset-bottom))}
+  .screen{display:none;animation:fade .22s ease}
+  .screen.on{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* ---------- home ---------- */
+  .hero{
+    background:linear-gradient(135deg,#1d2836,#141b24 60%);
+    border:1px solid var(--line);border-radius:18px;padding:16px 16px 14px;margin-bottom:16px;
+  }
+  .hero .big{font-size:15px;font-weight:700}
+  .hero .sub{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5}
+  .stats{display:flex;gap:10px;margin-top:14px}
+  .stat{flex:1;background:#0f151d;border:1px solid var(--line);border-radius:12px;padding:9px 10px}
+  .stat b{display:block;font-size:18px;color:var(--acc2)}
+  .stat span{font-size:10.5px;color:var(--mut);letter-spacing:.3px}
+
+  .sec-title{font-size:12px;letter-spacing:1.4px;color:var(--mut);text-transform:uppercase;margin:6px 4px 10px;font-weight:700}
+
+  .card{
+    display:flex;align-items:center;gap:12px;background:var(--card);
+    border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px;
+    transition:transform .12s ease,border-color .12s;
+  }
+  .card:active{transform:scale(.985);border-color:var(--acc)}
+  .thumb{
+    width:44px;height:44px;border-radius:13px;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+    background:#101821;border:1px solid var(--line);
+  }
+  .card .meta{flex:1;min-width:0}
+  .card .nm{font-size:14.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+  .card .ur{font-size:12px;color:var(--mut);margin-top:2px}
+  .card .mg{font-size:10.5px;color:#6f8296;margin-top:3px;letter-spacing:.3px;text-transform:uppercase}
+  .pill{
+    font-size:10px;font-weight:700;padding:3px 7px;border-radius:20px;
+    background:rgba(255,107,44,.14);color:var(--acc);border:1px solid rgba(255,107,44,.3);
+    white-space:nowrap;
+  }
+  .pill.saved{background:rgba(45,212,191,.12);color:var(--acc2);border-color:rgba(45,212,191,.3)}
+  .chev{color:#4b5b6d;font-size:18px;flex:0 0 auto}
+
+  /* ---------- setup ---------- */
+  .exhead{display:flex;gap:14px;align-items:flex-start;margin-bottom:16px}
+  .exhead .ico{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#22303f,#161e28);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:26px}
+  .exhead h2{margin:0;font-size:19px;line-height:1.2}
+  .exhead .ur{color:var(--mut);font-size:13px;margin-top:3px}
+  .exhead .mg{font-size:10.5px;color:var(--acc);letter-spacing:1px;text-transform:uppercase;margin-top:5px;font-weight:700}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px 14px;margin-bottom:14px}
+  .row{display:flex;align-items:center;gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:0}
+  .row .lbl{flex:1}
+  .row .lbl .en{font-size:13.5px;font-weight:600}
+  .row .lbl .u2{font-size:11.5px;color:var(--mut);margin-top:1px}
+  .stepper{display:flex;align-items:center;gap:0;background:#0f151d;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .stepper button{
+    width:38px;height:38px;border:0;background:transparent;color:var(--acc);
+    font-size:20px;font-weight:600;line-height:1;
+  }
+  .stepper button:active{background:#1a2431}
+  .stepper .val{min-width:56px;text-align:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+  .stepper .val i{font-size:10px;color:var(--mut);font-style:normal;margin-left:2px}
+
+  .tips{background:var(--card2);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:16px}
+  .tips h3{margin:0 0 9px;font-size:12px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mut)}
+  .tips li{font-size:12.5px;line-height:1.65;color:#c3d0de;margin-bottom:7px}
+  .tips ul{margin:0;padding-left:18px}
+  .tips li:last-child{margin-bottom:0}
+
+  .btn{
+    width:100%;border:0;border-radius:15px;padding:16px;font-size:15px;font-weight:800;
+    letter-spacing:.2px;display:flex;align-items:center;justify-content:center;gap:9px;
+  }
+  .btn.primary{background:linear-gradient(135deg,var(--acc),#ff8f4d);color:#160c05;box-shadow:0 8px 22px -10px rgba(255,107,44,.8)}
+  .btn.ghost{background:var(--card);color:var(--txt);border:1px solid var(--line);margin-top:10px}
+  .btn.ok{background:linear-gradient(135deg,#2dd4bf,#34d399);color:#04231f}
+  .btn:active{opacity:.88;transform:scale(.99)}
+  .saved-note{
+    display:none;align-items:center;gap:8px;justify-content:center;font-size:12px;color:var(--ok);
+    margin-top:10px;font-weight:600;
+  }
+  .saved-note.on{display:flex}
+
+  /* ---------- player ---------- */
+  #player{padding-top:0}
+  .vwrap{
+    position:relative;width:100%;aspect-ratio:16/9;background:#000;
+    border-radius:16px;overflow:hidden;border:1px solid var(--line);
+  }
+  .vwrap iframe,.vwrap #yt{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .vfallback{
+    position:absolute;inset:0;display:none;flex-direction:column;gap:10px;
+    align-items:center;justify-content:center;background:#0a0e13;text-align:center;padding:18px;
+  }
+  .vfallback.on{display:flex}
+  .vfallback p{margin:0;font-size:12px;color:var(--mut);line-height:1.5}
+
+  .ptop{display:flex;align-items:center;justify-content:space-between;margin:14px 2px 6px}
+  .ptop .t1{font-size:15px;font-weight:800}
+  .ptop .t2{font-size:11px;color:var(--mut);margin-top:2px}
+
+  .timerwrap{position:relative;display:flex;align-items:center;justify-content:center;margin:10px 0 4px}
+  .ring{width:186px;height:186px;transform:rotate(-90deg)}
+  .ring .track{fill:none;stroke:#1a2431;stroke-width:9}
+  .ring .prog{fill:none;stroke:url(#g1);stroke-width:9;stroke-linecap:round;transition:stroke-dashoffset .95s linear}
+  .tinner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .tinner .clock{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .tinner .lab{font-size:11px;color:var(--mut);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px}
+
+  .setdots{display:flex;gap:7px;justify-content:center;margin:12px 0 4px;flex-wrap:wrap}
+  .dot{width:26px;height:5px;border-radius:4px;background:#1e2937}
+  .dot.done{background:var(--acc2)}
+  .dot.cur{background:var(--acc)}
+
+  .pinfo{display:flex;gap:9px;margin:12px 0 4px}
+  .pinfo div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:13px;padding:9px 10px;text-align:center}
+  .pinfo b{display:block;font-size:15px;font-weight:800}
+  .pinfo span{font-size:10px;color:var(--mut);letter-spacing:.6px;text-transform:uppercase}
+
+  .pctl{display:flex;gap:10px;margin-top:14px}
+  .pctl .btn{margin-top:0}
+  .round{width:56px;height:56px;flex:0 0 auto;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:20px;display:flex;align-items:center;justify-content:center}
+  .round:active{background:var(--card2)}
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+    background:#1e2937;border:1px solid var(--line);color:var(--txt);font-size:12.5px;font-weight:600;
+    padding:11px 16px;border-radius:12px;opacity:0;transition:.25s;pointer-events:none;z-index:99;
+    box-shadow:0 10px 30px -12px #000;max-width:88%;text-align:center;
+  }
+  .toast.on{opacity:1;transform:translate(-50%,0)}
+  .center{text-align:center}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <button class="backbtn" id="backBtn" onclick="appBack()">‹</button>
+    <div class="logo" id="logo">🏋</div>
+    <h1 id="title">FitSet <small>اپنی ایکسرسائز چنیں</small></h1>
+  </div>
+
+  <main>
+    <!-- ============ HOME ============ -->
+    <section class="screen on" id="scr-home">
+      <div class="hero">
+        <div class="big">آپ کا ورک آؤٹ پلان</div>
+        <div class="sub">کوئی بھی ایکسرسائز کھولیں، سیٹس · ریپس · ٹائم سیٹ کریں اور سیو کریں۔ سیو کرنے کے بعد اسی ایکسرسائز پر ٹیپ کریں تو ویڈیو صحیح فارم کے ساتھ اتنے ہی وقت تک چلے گی۔</div>
+        <div class="stats">
+          <div class="stat"><b id="stTotal">0</b><span>EXERCISES</span></div>
+          <div class="stat"><b id="stSaved">0</b><span>SAVED</span></div>
+          <div class="stat"><b id="stSets">0</b><span>TOTAL SETS</span></div>
+        </div>
+      </div>
+      <div class="sec-title">Exercise Library</div>
+      <div id="list"></div>
+    </section>
+
+    <!-- ============ SETUP ============ -->
+    <section class="screen" id="scr-setup">
+      <div class="exhead">
+        <div class="ico" id="suIco">🏋</div>
+        <div style="flex:1">
+          <h2 id="suName">Squat</h2>
+          <div class="ur urdu" id="suUrdu">اسکواٹ</div>
+          <div class="mg" id="suMuscle">LEGS</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="row">
+          <div class="lbl"><div class="en">Sets</div><div class="u2 urdu">کتنے سیٹس لگانے ہیں</div></div>
+          <div class="stepper">
+            <button onclick="step('sets',-1)">−</button>
+            <div class="val" id="vSets">3</div>
+            <button onclick="step('sets',1)">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="lbl"><div class="en">Reps</div><div class="u2 urdu">کتنے ریپس کرنے ہیں</div></div>
+          <div class="stepper">
+            <button onclick="step('reps',-1)">−</button>
+            <div class="val" id="vReps">12</div>
+            <button onclick="step('reps',1)">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="lbl"><div class="en">Time per set</div><div class="u2 urdu">ہر سیٹ کتنی دیر چلے گی</div></div>
+          <div class="stepper">
+            <button onclick="step('time',-5)">−</button>
+            <div class="val" id="vTime">30<i>s</i></div>
+            <button onclick="step('time',5)">+</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="lbl"><div class="en">Rest between sets</div><div class="u2 urdu">سیٹس کے درمیان آرام</div></div>
+          <div class="stepper">
+            <button onclick="step('rest',-5)">−</button>
+            <div class="val" id="vRest">20<i>s</i></div>
+            <button onclick="step('rest',5)">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tips">
+        <h3>Correct form · صحیح طریقہ</h3>
+        <ul id="suTips"></ul>
+      </div>
+
+      <button class="btn primary" id="btnSave" onclick="saveSetup()">💾 &nbsp;Save exercise / محفوظ کریں</button>
+      <div class="saved-note" id="savedNote">✓ Saved — اب ایکسرسائز پر ٹیپ کریں تو ویڈیو چلے گی</div>
+      <button class="btn ok" id="btnStart" onclick="startWorkout()" style="margin-top:10px">▶ &nbsp;Start workout / شروع کریں</button>
+    </section>
+
+    <!-- ============ PLAYER ============ -->
+    <section class="screen" id="scr-player">
+      <div class="vwrap">
+        <div id="yt"></div>
+        <div class="vfallback" id="vfallback">
+          <div style="font-size:26px">▶</div>
+          <p id="fbText">ویڈیو یہاں نہیں چل سکی۔ یوٹیوب پر کھولیں۔</p>
+          <button class="btn primary" style="padding:12px 18px;width:auto" onclick="openOnYouTube()">Open on YouTube</button>
+        </div>
+      </div>
+
+      <div class="ptop">
+        <div>
+          <div class="t1" id="pName">Squat</div>
+          <div class="t2" id="pMeta">Set 1 of 3 · 12 reps</div>
+        </div>
+        <button class="pill" style="padding:7px 11px" onclick="editSetup()">Edit</button>
+      </div>
+
+      <div class="timerwrap">
+        <svg class="ring" viewBox="0 0 200 200">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ff6b2c"/><stop offset="100%" stop-color="#2dd4bf"/>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="100" cy="100" r="88"/>
+          <circle class="prog" id="ringProg" cx="100" cy="100" r="88"/>
+        </svg>
+        <div class="tinner">
+          <div class="clock" id="clock">30</div>
+          <div class="lab" id="phase">READY</div>
+        </div>
+      </div>
+
+      <div class="setdots" id="setdots"></div>
+
+      <div class="pinfo">
+        <div><b id="iSets">3</b><span>Sets</span></div>
+        <div><b id="iReps">12</b><span>Reps</span></div>
+        <div><b id="iTime">30s</b><span>Time</span></div>
+      </div>
+
+      <div class="pctl">
+        <button class="round" onclick="togglePause()" id="btnPause">⏸</button>
+        <button class="btn primary" id="btnMain" onclick="mainAction()">▶ &nbsp;Start set</button>
+        <button class="round" onclick="stopWorkout()">✕</button>
+      </div>
+      <button class="btn ghost" onclick="openOnYouTube()">YouTube پر کھولیں / Open on YouTube</button>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   EXERCISE DATA  —  videoId = official YouTube video
+   ========================================================= */
+var EXERCISES = [
+ {id:"squat", name:"Squat", urdu:"اسکواٹ", muscle:"Legs & Glutes", ico:"🦵", vid:"P-yaD24bUE8", sets:3, reps:12, time:30, rest:20,
+  tips:["Feet shoulder-width apart, toes slightly out.","Push hips back and down, chest up, back straight.","Knees track over the toes — never cave inward.","Go as low as comfortable, then drive through the heels."]},
+ {id:"pushup", name:"Push-Up", urdu:"پش اپ", muscle:"Chest · Shoulders · Triceps", ico:"💪", vid:"WDIpL0pjun0", sets:3, reps:10, time:30, rest:20,
+  tips:["Hands under the shoulders, body in one straight line.","Brace the core — do not let the hips sag or pike.","Lower until the chest is a fist above the floor.","Elbows at about 45°, not flared out to the sides."]},
+ {id:"plank", name:"Plank", urdu:"پلانک", muscle:"Core", ico:"🧘", vid:"6LqqeBtFn9M", sets:3, reps:1, time:30, rest:20,
+  tips:["Elbows under the shoulders, forearms flat.","Squeeze glutes and abs; body in one straight line.","Do not drop the head — look at the floor ahead.","Breathe steadily; stop the set when the hips drop."]},
+ {id:"lunge", name:"Forward Lunge", urdu:"لنج", muscle:"Legs & Glutes", ico:"🦵", vid:"ASdqJoDPMHA", sets:3, reps:10, time:40, rest:25,
+  tips:["Step forward, keep the torso upright.","Front knee stays over the ankle, back knee drops straight down.","Push through the front heel to return.","Complete all reps on one leg, then switch."]},
+ {id:"glutebridge", name:"Glute Bridge", urdu:"گلوٹ برج", muscle:"Glutes & Hamstrings", ico:"🍑", vid:"OUgsJ8-Vi0E", sets:3, reps:15, time:40, rest:20,
+  tips:["Lie on the back, knees bent, heels under the knees.","Squeeze the glutes and lift the hips until shoulders-knees are in line.","Do not over-arch the lower back at the top.","Lower slowly — two seconds down."]},
+ {id:"rdl", name:"Romanian Deadlift", urdu:"رومانیئن ڈیڈ لفٹ", muscle:"Hamstrings & Glutes", ico:"🏋", vid:"hQgFixeXdZo", sets:3, reps:10, time:45, rest:30,
+  tips:["Soft knees, weight close to the thighs.","Hinge at the hips — push the hips back, chest stays proud.","Feel the stretch in the hamstrings, back stays flat.","Drive the hips forward to stand tall, squeeze the glutes."]},
+ {id:"shoulderpress", name:"Shoulder Press", urdu:"شولڈر پریس", muscle:"Shoulders", ico:"🏋", vid:"qEwKCR5JCog", sets:3, reps:10, time:45, rest:30,
+  tips:["Dumbbells at shoulder height, wrists stacked over elbows.","Press straight up without arching the lower back.","Stop just short of locking the elbows at the top.","Lower under control to ear height."]},
+ {id:"curl", name:"Bicep Curl", urdu:"بائسپ کرل", muscle:"Biceps", ico:"💪", vid:"ykJmrZ5v0Oo", sets:3, reps:12, time:40, rest:25,
+  tips:["Elbows pinned to the sides, palms forward.","Curl up without swinging the body.","Squeeze at the top for a second.","Lower slowly for a full stretch."]},
+ {id:"lateral", name:"Lateral Raise", urdu:"لیٹرل ریز", muscle:"Shoulders", ico:"🏋", vid:"PzsMitRdI_8", sets:3, reps:12, time:40, rest:25,
+  tips:["Slight bend in the elbows, weights in front of the thighs.","Raise out to the sides only to shoulder height.","Lead with the elbows, not the hands.","No swinging — light weight, slow tempo."]},
+ {id:"pullup", name:"Pull-Up", urdu:"پل اپ", muscle:"Back & Biceps", ico:"🧗", vid:"eGo4IYlbE5g", sets:3, reps:6, time:40, rest:40,
+  tips:["Grip slightly wider than the shoulders.","Start from a dead hang, shoulders pulled down.","Drive the elbows to the ribs, chest to the bar.","Lower all the way down under control."]},
+ {id:"mtclimber", name:"Mountain Climber", urdu:"ماؤنٹین کلائمبر", muscle:"Core & Cardio", ico:"🏃", vid:"ZhiCSdOVJp0", sets:3, reps:20, time:30, rest:20,
+  tips:["Start in a high plank, hands under the shoulders.","Drive one knee to the chest, then switch quickly.","Keep the hips low and the core braced.","Shoulders stay stacked over the wrists."]},
+ {id:"crunch", name:"Crunch", urdu:"کرنچ", muscle:"Abs", ico:"🧘", vid:"okqQVQireEo", sets:3, reps:15, time:30, rest:20,
+  tips:["Lie on the back, knees bent, hands behind the head — not pulling.","Curl the ribs toward the pelvis, chin off the chest.","Exhale as you lift, squeeze the abs at the top.","Lower slowly; do not yank the neck."]},
+ {id:"burpee", name:"Burpee", urdu:"برپی", muscle:"Full Body", ico:"🔥", vid:"qLBImHhCXSw", sets:3, reps:10, time:45, rest:30,
+  tips:["Squat down, hands on the floor.","Kick back to a plank (or step back), then return.","Stand up and jump — land softly.","Keep the core tight in the plank position."]},
+ {id:"bench", name:"Bench Press", urdu:"بینچ پریس", muscle:"Chest & Triceps", ico:"🏋", vid:"lWFknlOTbyM", sets:3, reps:8, time:45, rest:40,
+  tips:["Feet planted, shoulder blades squeezed back.","Grip just wider than the shoulders.","Lower the bar to mid-chest, elbows at 45°.","Press up and slightly back over the shoulders."]},
+ {id:"dip", name:"Triceps Dip", urdu:"ٹرائسپس ڈپ", muscle:"Triceps", ico:"💪", vid:"6kALZikXxLc", sets:3, reps:10, time:40, rest:25,
+  tips:["Hands on the edge, fingers forward, arms straight.","Bend the elbows straight back, stay close to the bench.","Lower until the elbows reach about 90°.","Keep the shoulders down, away from the ears."]},
+ {id:"calf", name:"Calf Raise", urdu:"کاف ریز", muscle:"Calves", ico:"🦶", vid:"eMTy3qylqnE", sets:3, reps:15, time:40, rest:20,
+  tips:["Stand tall, feet hip-width, weight on the balls of the feet.","Rise as high as possible onto the toes.","Pause one second at the top, squeeze the calves.","Lower slowly for a full stretch."]}
+];
+
+/* =========================================================
+   STATE
+   ========================================================= */
+var KEY = "fitset.v1";
+var store = {};
+try { store = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch(e){ store = {}; }
+var cur = null;              // current exercise object
+var draft = {sets:3,reps:12,time:30,rest:20};
+
+/* workout runtime */
+var w = { set:1, remaining:0, phase:"idle", timer:null, paused:false };
+var ytPlayer = null, ytReady = false, ytApiLoaded = false, fallbackShown = false;
+var CIRC = 2 * Math.PI * 88;
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function $(id){ return document.getElementById(id); }
+function show(id){
+  ["scr-home","scr-setup","scr-player"].forEach(function(s){ $(s).classList.toggle("on", s===id); });
+  $("backBtn").classList.toggle("on", id!=="scr-home");
+  $("logo").style.display = id==="scr-home" ? "flex" : "none";
+  document.querySelector("main").scrollTop = 0;
+}
+function toast(msg){
+  var t=$("toast"); t.textContent=msg; t.classList.add("on");
+  clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove("on"); }, 1900);
+}
+function fmt(s){ s=Math.max(0,Math.round(s)); var m=Math.floor(s/60), r=s%60; return m>0 ? (m+":"+(r<10?"0":"")+r) : (""+r); }
+function saveStore(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+
+/* =========================================================
+   HOME
+   ========================================================= */
+function renderHome(){
+  var saved=0, totalSets=0;
+  EXERCISES.forEach(function(e){ if(store[e.id]){ saved++; totalSets += store[e.id].sets; } });
+  $("stTotal").textContent = EXERCISES.length;
+  $("stSaved").textContent = saved;
+  $("stSets").textContent = totalSets;
+
+  var html = "";
+  EXERCISES.forEach(function(e){
+    var s = store[e.id];
+    var badge = s
+      ? '<span class="pill saved">'+s.sets+'×'+s.reps+' · '+s.time+'s</span>'
+      : '<span class="pill">SET UP</span>';
+    html += '<div class="card" onclick="openExercise(\''+e.id+'\')">'+
+              '<div class="thumb">'+e.ico+'</div>'+
+              '<div class="meta">'+
+                '<div class="nm">'+e.name+'</div>'+
+                '<div class="ur urdu">'+e.urdu+'</div>'+
+                '<div class="mg">'+e.muscle+'</div>'+
+              '</div>'+ badge +'<div class="chev">›</div>'+
+            '</div>';
+  });
+  $("list").innerHTML = html;
+}
+
+/* Tap on an exercise: saved → straight to video player; not saved → setup screen */
+function openExercise(id){
+  cur = EXERCISES.filter(function(e){ return e.id===id; })[0];
+  if(store[id]){ startWorkout(); } else { openSetup(); }
+}
+
+function openSetup(){
+  draft = store[cur.id]
+    ? { sets:store[cur.id].sets, reps:store[cur.id].reps, time:store[cur.id].time, rest:store[cur.id].rest||20 }
+    : { sets:cur.sets, reps:cur.reps, time:cur.time, rest:cur.rest };
+  $("suIco").textContent = cur.ico;
+  $("suName").textContent = cur.name;
+  $("suUrdu").textContent = cur.urdu;
+  $("suMuscle").textContent = cur.muscle;
+  $("suTips").innerHTML = cur.tips.map(function(t){ return "<li>"+t+"</li>"; }).join("");
+  paintDraft();
+  $("savedNote").classList.toggle("on", !!store[cur.id]);
+  $("btnSave").textContent = store[cur.id] ? "💾  Update / اپ ڈیٹ کریں" : "💾  Save exercise / محفوظ کریں";
+  $("title").innerHTML = 'Set up <small>سیٹس · ریپس · ٹائم</small>';
+  show("scr-setup");
+}
+
+function paintDraft(){
+  $("vSets").textContent = draft.sets;
+  $("vReps").textContent = draft.reps;
+  $("vTime").innerHTML = draft.time+'<i>s</i>';
+  $("vRest").innerHTML = draft.rest+'<i>s</i>';
+}
+
+function step(field, delta){
+  var lim = { sets:[1,10], reps:[1,50], time:[5,300], rest:[0,180] }[field];
+  draft[field] = Math.min(lim[1], Math.max(lim[0], draft[field] + delta));
+  paintDraft();
+}
+
+function saveSetup(){
+  store[cur.id] = { sets:draft.sets, reps:draft.reps, time:draft.time, rest:draft.rest };
+  saveStore(); renderHome();
+  $("savedNote").classList.add("on");
+  $("btnSave").textContent = "💾  Update / اپ ڈیٹ کریں";
+  toast("Saved · محفوظ ہو گیا");
+  setTimeout(function(){ startWorkout(); }, 550);
+}
+
+/* =========================================================
+   YOUTUBE PLAYER
+   ========================================================= */
+function onYouTubeIframeAPIReady(){
+  ytApiLoaded = true;
+  createPlayer();
+}
+function createPlayer(){
+  if(!cur) return;
+  if(ytPlayer && ytPlayer.loadVideoById){ return; }
+  try{
+    ytPlayer = new YT.Player("yt", {
+      width:"100%", height:"100%", videoId: cur.vid,
+      playerVars:{ rel:0, playsinline:1, controls:1, modestbranding:1, fs:0,
+                   iv_load_policy:3, disablekb:0, origin:"https://appassets.androidplatform.net" },
+      events:{
+        onReady:function(){ ytReady = true; },
+        onError:function(){ showFallback("یہ ویڈیو ایمبیڈ نہیں ہو سکتی۔ یوٹیوب پر کھولیں۔"); }
+      }
+    });
+  }catch(e){ showFallback("ویڈیو لوڈ نہیں ہو سکی۔ یوٹیوب پر کھولیں۔"); }
+}
+function showFallback(msg){
+  fallbackShown = true;
+  $("fbText").textContent = msg || "ویڈیو یہاں نہیں چل سکی۔ یوٹیوب پر کھولیں۔";
+  $("vfallback").classList.add("on");
+}
+function loadVideo(id){
+  $("vfallback").classList.remove("on");
+  fallbackShown = false;
+  if(ytReady && ytPlayer && ytPlayer.loadVideoById){ ytPlayer.loadVideoById(id); }
+  else if(ytApiLoaded){ createPlayer(); }
+  /* if the API script never loads (offline), offer YouTube */
+  setTimeout(function(){ if(!ytReady) showFallback("انٹرنیٹ نہیں یا ویڈیو دستیاب نہیں۔ یوٹیوب پر کھولیں۔"); }, 7000);
+}
+function playVideo(){ if(ytReady && ytPlayer && ytPlayer.playVideo){ try{ ytPlayer.playVideo(); }catch(e){} } }
+function pauseVideo(){ if(ytReady && ytPlayer && ytPlayer.pauseVideo){ try{ ytPlayer.pauseVideo(); }catch(e){} } }
+function seekStart(){ if(ytReady && ytPlayer && ytPlayer.seekTo){ try{ ytPlayer.seekTo(0,true); }catch(e){} } }
+function openOnYouTube(){
+  var url = "https://www.youtube.com/watch?v="+ (cur? cur.vid : "");
+  if(window.AndroidBridge && window.AndroidBridge.openExternal){ window.AndroidBridge.openExternal(url); }
+  else { window.open(url, "_blank"); }
+}
+
+/* =========================================================
+   WORKOUT ENGINE
+   ========================================================= */
+function startWorkout(){
+  var s = store[cur.id] || { sets:draft.sets, reps:draft.reps, time:draft.time, rest:draft.rest };
+  w = { set:1, remaining:s.time, phase:"ready", timer:null, paused:false, total:s.sets, time:s.time, rest:s.rest, reps:s.reps };
+
+  $("pName").textContent = cur.name;
+  $("iSets").textContent = s.sets;
+  $("iReps").textContent = s.reps;
+  $("iTime").textContent = s.time+"s";
+  $("title").innerHTML = cur.name + ' <small class="urdu">'+cur.urdu+'</small>';
+  paintDots();
+  paintClock();
+  $("phase").textContent = "READY";
+  $("btnMain").innerHTML = "▶ &nbsp;Start set";
+  $("btnPause").textContent = "⏸";
+  show("scr-player");
+  loadVideo(cur.vid);
+}
+
+function paintDots(){
+  var h="";
+  var resting = (w.phase==="rest" || w.phase==="done");
+  var doneUpTo = resting ? w.set : w.set - 1;
+  for(var i=1;i<=w.total;i++){
+    h += '<div class="dot '+(i<=doneUpTo?"done":(i===w.set&&!resting?"cur":""))+'"></div>';
+  }
+  $("setdots").innerHTML = h;
+  $("pMeta").textContent = "Set "+w.set+" of "+w.total+" · "+w.reps+" reps";
+}
+function paintClock(){
+  $("clock").textContent = fmt(w.remaining);
+  var frac = w.time>0 ? Math.min(1, Math.max(0, w.remaining / w.time)) : 0;
+  $("ringProg").style.strokeDasharray = CIRC;
+  $("ringProg").style.strokeDashoffset = CIRC * (1 - frac);
+}
+
+function mainAction(){
+  if(w.phase==="ready"){ beginSet(); }
+  else if(w.phase==="rest"){ clearInterval(w.timer); w.set++; beginSet(); }
+  else if(w.phase==="done"){ w.set = 1; beginSet(); }
+  else if(w.phase==="work"){ endSet(true); }
+}
+
+function beginSet(){
+  clearInterval(w.timer);
+  w.phase = "work"; w.paused = false; w.remaining = w.time;
+  $("phase").textContent = "SET " + w.set;
+  $("btnMain").innerHTML = "⏭ &nbsp;Finish set";
+  $("btnPause").textContent = "⏸";
+  paintDots(); paintClock();
+  seekStart(); playVideo();
+  w.timer = setInterval(tick, 1000);
+}
+
+function tick(){
+  if(w.paused) return;
+  w.remaining--;
+  paintClock();
+  if(w.remaining <= 0){ endSet(false); }
+}
+
+function endSet(manual){
+  clearInterval(w.timer);
+  pauseVideo();
+  if(w.set >= w.total){
+    w.phase = "done";
+    $("phase").textContent = "COMPLETE";
+    $("clock").textContent = "✓";
+    $("ringProg").style.strokeDashoffset = 0;
+    $("btnMain").innerHTML = "↻ &nbsp;Again";
+    $("btnPause").textContent = "⏸";
+    paintDots();
+    toast("Workout complete · مکمل");
+    return;
+  }
+  w.phase = "rest";
+  w.remaining = w.rest;
+  $("phase").textContent = "REST";
+  $("btnMain").innerHTML = "▶ &nbsp;Next set";
+  paintDots();
+  paintClock();
+  if(w.rest > 0){
+    w.timer = setInterval(function(){
+      if(w.paused) return;
+      w.remaining--; paintClock();
+      if(w.remaining <= 0){
+        clearInterval(w.timer);
+        w.set++; beginSet();
+      }
+    }, 1000);
+  }
+}
+
+function togglePause(){
+  if(w.phase==="work" || w.phase==="rest"){
+    w.paused = !w.paused;
+    $("btnPause").textContent = w.paused ? "▶" : "⏸";
+    if(w.paused){ pauseVideo(); } else { if(w.phase==="work") playVideo(); }
+    $("phase").textContent = w.paused ? "PAUSED" : (w.phase==="work" ? "SET "+w.set : "REST");
+  }
+}
+
+function stopWorkout(){
+  clearInterval(w.timer);
+  pauseVideo();
+  w.phase = "idle";
+  renderHome();
+  $("title").innerHTML = 'FitSet <small>اپنی ایکسرسائز چنیں</small>';
+  show("scr-home");
+}
+
+function editSetup(){
+  clearInterval(w.timer);
+  pauseVideo();
+  openSetup();
+}
+
+/* back button from Android */
+window.appBack = function(){
+  var onPlayer = $("scr-player").classList.contains("on");
+  var onSetup  = $("scr-setup").classList.contains("on");
+  if(onPlayer){ stopWorkout(); return; }
+  if(onSetup){ renderHome(); $("title").innerHTML='FitSet <small>اپنی ایکسرسائز چنیں</small>'; show("scr-home"); return; }
+  if(window.AndroidBridge && window.AndroidBridge.exitApp){ window.AndroidBridge.exitApp(); }
+};
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+renderHome();
+/* load the YouTube IFrame API (falls back gracefully if offline) */
+(function(){
+  var s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  s.onerror = function(){ showFallback("انٹرنیٹ نہیں — ویڈیو یوٹیوب پر کھولیں۔"); };
+  document.body.appendChild(s);
+})();
+</script>
+</body>
+</html>
